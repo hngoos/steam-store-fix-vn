@@ -1,0 +1,8 @@
+.runtime/
+logs/
+*.zip
+*.log
+.env
+.env.*
+Thumbs.db
+Desktop.ini
