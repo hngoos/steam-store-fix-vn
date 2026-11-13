@@ -2,85 +2,89 @@
   <img src="docs/assets/steam-store-fix-wordmark.svg" width="740" alt="Steam Store Fix VN">
 </p>
 
-**Steam Store Fix VN** hỗ trợ xử lý lỗi **-101**, Store tải thiếu nội dung hoặc mất ô tìm kiếm khi kết nối tới máy chủ Steam bị ngắt trên đường mạng. Công cụ sử dụng GoodbyeDPI, không cần Cloudflare WARP hay VPN.
+**Steam Store Fix VN** is a Windows launcher for GoodbyeDPI that helps resolve Steam Store connection resets and incomplete page loading. It applies a configuration scoped to Steam domains without requiring a VPN.
 
 <p align="center">
-  <a href="https://github.com/hngoos/steam-store-fix-vn/releases/latest"><img src="docs/assets/install-windows.svg" width="260" alt="Tải Steam Store Fix VN cho Windows"></a>
+  <a href="https://github.com/hngoos/steam-store-fix-vn/releases/latest"><img src="docs/assets/install-windows.svg" width="260" alt="Download Steam Store Fix VN for Windows"></a>
 </p>
 
-## Tính năng
+## Features
 
-- **Dành cho Steam:** giới hạn các thao tác với HTTP/TLS theo danh sách tên miền Steam và tên miền con.
-- **Bật và tắt bằng một lần nhấp:** có sẵn script Start/Stop, tự hiển thị yêu cầu quyền Administrator.
-- **Tải từ nguồn chính thức:** tự tải phiên bản GoodbyeDPI đã cố định, kiểm tra SHA256 của gói, các file thực thi và chữ ký driver WinDivert.
-- **Giữ nguyên cài đặt:** không đổi DNS, proxy của Windows, cài đặt Steam hoặc file game.
-- **Chạy khi cần:** không tự khởi động cùng Windows; có log để hỗ trợ tìm lỗi.
+- **Steam domain filtering:** HTTP/TLS adjustments apply to the listed Steam domains and their subdomains.
+- **Start and stop controls:** included launchers handle the required Administrator prompt and run the helper in the background.
+- **Verified dependencies:** downloads a pinned official GoodbyeDPI release and verifies archive and binary SHA256 hashes, along with the WinDivert driver signature.
+- **On-demand operation:** runs when started, with local logs for troubleshooting and no automatic startup.
+- **Preserved settings:** Windows DNS and proxy settings, Steam configuration, and game files remain unchanged.
 
-## Tải về
+## Requirements
 
-Phiên bản hiện tại: **v0.1.0**.
+- Windows 10 or Windows 11, x64.
+- Windows PowerShell 5.1.
+- Administrator privileges to run the WinDivert driver.
+- Access to GitHub for the initial dependency download.
 
-### Windows
+Windows ARM64, 32-bit Windows, macOS, and Linux are not supported.
 
-**Windows 10/11 | x64**
+## Getting started
 
-[Tải bản ZIP cho Windows](https://github.com/hngoos/steam-store-fix-vn/releases/download/v0.1.0/steam-store-fix-vn-v0.1.0.zip)
+1. Download the ZIP package from the [latest release](https://github.com/hngoos/steam-store-fix-vn/releases/latest).
+2. Extract the archive and run **`Start-Steam-Network.cmd`**.
+3. Approve the Windows Administrator prompt. Dependencies are downloaded and verified automatically on first launch.
+4. Open the Steam Store and press **Ctrl + R** to reload the page.
 
-Không cần cài Git, Python hoặc Node.js. Máy cần kết nối được GitHub để tải thành phần GoodbyeDPI trong lần chạy đầu. Bạn cũng có thể chọn **Code → Download ZIP** để tải mã nguồn kèm các script.
+Keep the extracted files together. Stop any other GoodbyeDPI instance before starting the helper. Run the Start launcher again after restarting Windows.
 
-### Sử dụng
+### Stopping and removing
 
-1. **Giải nén toàn bộ** file ZIP ra một thư mục riêng, ví dụ `D:\Tools\SteamStoreFix`.
-2. Nhấp đúp **`Start-Steam-Network.cmd`**. Lần đầu, script tải và kiểm tra GoodbyeDPI.
-3. Khi Windows hỏi quyền **Administrator**, chọn **Yes**. Công cụ sẽ chạy nền.
-4. Mở Steam → **Store**, nhấn **Ctrl + R** để tải lại trang.
+- **Stop:** run **`Stop-Steam-Network.cmd`** and approve the Administrator prompt. The launcher stops the helper associated with that installation.
+- **Remove:** stop the helper, then delete the extracted files.
 
-Sau khi khởi động lại Windows, chạy lại `Start-Steam-Network.cmd` trước khi sử dụng Store. Không chạy trực tiếp bên trong file ZIP; đóng bản GoodbyeDPI khác nếu đang sử dụng.
+## Supported use cases
 
-### Tắt và gỡ
+- Steam reports **Error Code: -101** or **Unable to connect to server**.
+- Store pages load partially, with missing navigation or search controls.
+- Steam stylesheets, scripts, images, or API requests fail to load.
+- Steam works on another network but fails on the current connection.
 
-- **Tắt:** chạy **`Stop-Steam-Network.cmd`** và chấp nhận yêu cầu Administrator. Script chỉ dừng bản công cụ trong thư mục này.
-- **Gỡ:** tắt công cụ rồi xóa thư mục đã giải nén.
+These symptoms can have several causes. This utility targets connection interference on the network path; it does not resolve Steam outages, account issues, or a loss of internet connectivity. Results depend on the network and its filtering behavior.
 
-## Khi nào nên thử?
+## How it works
 
-- Steam báo **Error Code: -101** hoặc **Unable to connect to server**.
-- Store hiện ảnh game nhưng thiếu thanh điều hướng hoặc ô tìm kiếm.
-- Một số nội dung, CSS, JavaScript hoặc API của Steam không tải được.
-- Steam hoạt động khi dùng VPN hoặc mạng khác, nhưng lỗi trên đường mạng hiện tại.
+The launcher runs [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) with the following configuration:
 
-Các dấu hiệu trên giúp khoanh vùng; chúng không chứng minh chắc chắn nguyên nhân. Công cụ không sửa được mọi lỗi Store, chẳng hạn khi Steam đang bảo trì, máy mất mạng hoặc tài khoản có vấn đề.
+```text
+-5 --blacklist steam-domains.txt --max-payload 0
+```
 
-## Cách hoạt động
+WinDivert processes packets locally while the helper is running. Filtering is scoped by domain rather than process, so other applications connecting to the same Steam domains are also within scope.
 
-Script chạy [GoodbyeDPI](https://github.com/ValdikSS/GoodbyeDPI) với cấu hình `-5 --blacklist steam-domains.txt --max-payload 0`. WinDivert cần quyền Administrator để xử lý gói tin trên máy. Phạm vi được xác định theo **tên miền**, nên ứng dụng khác truy cập cùng tên miền Steam cũng nằm trong phạm vi này.
+Dependencies are downloaded from the official upstream release into `.runtime/`. The pinned GoodbyeDPI build is an upstream release candidate. Its version, download URL, and expected hashes are recorded in [upstream.json](upstream.json).
 
-Repo cố định bản **GoodbyeDPI 0.2.3rc3**, gói `goodbyedpi-0.2.3rc3-2.zip`. Đây là bản upstream gắn nhãn release candidate. File thực thi được tải trực tiếp từ bản phát hành chính thức vào `.runtime/`; repo không tự chuyển sang phiên bản khác.
+## Troubleshooting
 
-Không hỗ trợ Windows ARM64, Windows 32-bit, macOS hoặc Linux. Công cụ không cài GoodbyeDPI thành dịch vụ nền thường trực; driver WinDivert được sử dụng khi công cụ chạy.
+If the Store still loads incorrectly, confirm that `goodbyedpi.exe` is running, reload the page, and review the files in `logs/`. A successful launch alone does not confirm that all Steam connections are working.
 
-## Hỗ trợ và đóng góp
+For additional guidance, see the [troubleshooting guide](docs/TROUBLESHOOTING.md). When [reporting an issue](https://github.com/hngoos/steam-store-fix-vn/issues/new), include the Windows version, network provider, and relevant error messages. Remove account details and authentication data before sharing logs or screenshots.
 
-- [Vẫn lỗi -101, mất ô tìm kiếm hoặc công cụ không chạy](docs/TROUBLESHOOTING.md)
-- [Cấu trúc repo, kiểm thử và đóng góp](docs/DEVELOPMENT.md)
-- [Lịch sử thay đổi](CHANGELOG.md)
+## Development
 
-<details>
-<summary>English quick start</summary>
+Package verification runs on Windows through GitHub Actions. To run the checks locally:
 
-A Windows x64 launcher for GoodbyeDPI, intended for Steam Store connection resets (`-101`) and incomplete Store pages, including a missing search bar. Download and extract the release ZIP, run `Start-Steam-Network.cmd`, accept the Administrator prompt, then refresh the Steam Store with Ctrl+R. Run `Stop-Steam-Network.cmd` to stop this copy. Run Start again after restarting Windows.
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\Verify-Package.ps1
+```
 
-No VPN or Cloudflare WARP is required. HTTP/TLS modifications are scoped to listed Steam domains and their subdomains. The launcher verifies a pinned official release, leaves Windows DNS/proxy settings unchanged, and cannot fix every cause of Store errors.
+The checks verify package integrity and installation behavior without loading the network driver. See the [development guide](docs/DEVELOPMENT.md) and [changelog](CHANGELOG.md) for further details.
 
-</details>
+The troubleshooting and development guides are currently available in Vietnamese.
 
-## Ghi công
+## Acknowledgments and license
 
-Phần xử lý kết nối do [GoodbyeDPI của ValdikSS](https://github.com/ValdikSS/GoodbyeDPI) và [WinDivert của basil00](https://github.com/basil00/WinDivert) cung cấp. Xem [giấy phép thành phần bên thứ ba](THIRD_PARTY_NOTICES.md).
+Connection handling is provided by [GoodbyeDPI by ValdikSS](https://github.com/ValdikSS/GoodbyeDPI) and [WinDivert by basil00](https://github.com/basil00/WinDivert). Their licenses are documented in [Third-party notices](THIRD_PARTY_NOTICES.md).
 
-Đây là công cụ cộng đồng độc lập, không phải sản phẩm của Valve.
+The scripts in this repository are distributed under the [MIT License](LICENSE). This is an independent community project and is not affiliated with or endorsed by Valve.
 
-## Liên hệ
+## Contact
 
 <p align="left">
   <a href="https://www.facebook.com/hngoos"><img src="docs/assets/contact-facebook.svg" width="40" height="40" alt="Facebook"></a>
@@ -89,4 +93,4 @@ Phần xử lý kết nối do [GoodbyeDPI của ValdikSS](https://github.com/Va
   <a href="https://github.com/hngoos"><img src="docs/assets/contact-github.svg" width="40" height="40" alt="GitHub hngoos"></a>
 </p>
 
-[Báo lỗi](https://github.com/hngoos/steam-store-fix-vn/issues/new) · [Giấy phép MIT](LICENSE)
+[Report an issue](https://github.com/hngoos/steam-store-fix-vn/issues/new) · [License](LICENSE)
