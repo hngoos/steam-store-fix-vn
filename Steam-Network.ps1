@@ -13,7 +13,8 @@ try {
     if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
         $arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $PSCommandPath + '"'
         if ($Stop) { $arguments += ' -Stop' }
-        $administrator = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -Wait -PassThru
+        $administrator = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -PassThru
+        $administrator.WaitForExit()
         if ($administrator.ExitCode -ne 0) { throw 'Administrator helper failed. See logs, or run Steam-Network.ps1 from an Administrator PowerShell window to see the error.' }
         if ($Stop) { Write-Host 'This copy of the Steam network helper is stopped.' }
         else { Write-Host 'Steam network helper is ready. Refresh the Store with Ctrl+R.' }
